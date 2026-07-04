@@ -1,5 +1,7 @@
 #!/bin/bash
-set -eux
+set -euo pipefail
+SOURCE_REPO_URL="${source_repo_url}"
+SOURCE_REF="${source_ref}"
 yum makecache
 yum install -y git vim python3 python3-pip python3-devel alsa-lib-devel firewalld unzip wget
 dnf -y install oraclelinux-developer-release-el9
@@ -27,8 +29,32 @@ make -j"$(nproc)"
 make install
 echo '/usr/local/lib' > /etc/ld.so.conf.d/portaudio.conf
 ldconfig
-git clone https://github.com/jganggini/oracle-ai-accelerator.git /home/opc/oracle-ai-accelerator
+git clone --depth=1 --branch "$SOURCE_REF" "$SOURCE_REPO_URL" /home/opc/oracle-ai-accelerator
 chown -R opc:opc /home/opc/oracle-ai-accelerator
+python3 - <<'PY'
+from pathlib import Path
+
+setup_py = Path("/home/opc/oracle-ai-accelerator/setup/setup.py")
+setup_text = setup_py.read_text(encoding="utf-8")
+setup_text = setup_text.replace(
+    "        print(f'[Query]:')\n",
+    "        print('[Query]: statements redacted by CloudTechNext')\n",
+)
+setup_text = setup_text.replace(
+    "            print(f'  > {statement}\\n')\n",
+    "            print('  > [statement redacted]')\n",
+)
+setup_py.write_text(setup_text, encoding="utf-8")
+
+users_sql = Path("/home/opc/oracle-ai-accelerator/setup/autonomous_database/developer/c.TABLE_USERS.sql")
+users_text = users_sql.read_text(encoding="utf-8")
+old = "        'admin', \n        'admin',\n        'p_a_s_s_w_o_r_d',"
+new = "        'admin', \n        'p_a_s_s_w_o_r_d',\n        'p_a_s_s_w_o_r_d',"
+if old not in users_text:
+    raise SystemExit("Could not patch default application password in c.TABLE_USERS.sql")
+users_sql.write_text(users_text.replace(old, new), encoding="utf-8")
+PY
+chown -R opc:opc /home/opc/oracle-ai-accelerator/setup
 mkdir -p /home/opc/.oci
 echo "${oci_config_content}" > /home/opc/.oci/config
 echo "${oci_key_content}" > /home/opc/.oci/key.pem
@@ -82,7 +108,8 @@ for PORT in 8501 8502 8503 8504; do
     sleep 2
 done
 
-deactivate
+deactivate || true
+exit 0
 EOF
 
 # Step 14: Create monitoring and management scripts
@@ -148,15 +175,18 @@ RESTARTSCRIPT
 chmod +x /home/opc/restart_worker.sh
 chown opc:opc /home/opc/restart_worker.sh
 
-# Add cron job for health check every 5 minutes
-(crontab -u opc -l 2>/dev/null; echo "*/5 * * * * /home/opc/health_check.sh") | crontab -u opc -
+# Add cron job for health check every 5 minutes when crontab is available.
+if command -v crontab >/dev/null 2>&1; then
+  (crontab -u opc -l 2>/dev/null; echo "*/5 * * * * /home/opc/health_check.sh") | crontab -u opc -
+else
+  echo "crontab not available; skipping scheduled health check"
+fi
 
 # Step 15: Install and configure Nginx as Load Balancer for multiple Streamlit workers
-sudo bash <<'EOF'
-set -eux
-dnf -y install oracle-epel-release-el9
-dnf -y install nginx
-dnf -y install certbot python3-certbot-nginx || true
+bash <<'EOF'
+set -euo pipefail
+dnf -y install oracle-epel-release-el9 || true
+dnf -y install nginx openssl policycoreutils-python-utils || dnf -y install nginx openssl
 
 # Allow Nginx to connect to upstreams (Streamlit) with SELinux enforcing
 setsebool -P httpd_can_network_connect 1 || true
@@ -309,6 +339,13 @@ chmod +x /home/opc/monitor_system.sh
 chown opc:opc /home/opc/monitor_system.sh
 
 # Step 17: Create load testing script
+cat > /home/opc/load_test_results.txt <<'LOADTEST_SKIPPED'
+LOAD TEST RESULTS:
+   Skipped during automated provisioning.
+   Run load testing manually after validating the app URL.
+LOADTEST_SKIPPED
+
+: <<'LOADTEST_DISABLED'
 cat > /home/opc/load_test.sh <<'LOADTEST'
 #!/bin/bash
 # Load testing script for Streamlit multi-worker setup
@@ -402,6 +439,7 @@ chown opc:opc /home/opc/load_test.sh
 yum install -y httpd-tools
 sleep 10
 sudo -u opc /home/opc/load_test.sh
+LOADTEST_DISABLED
 
 # Step 18: Display startup information
 cat > /home/opc/startup_info.txt <<'INFO'

@@ -9,29 +9,14 @@ resource "tls_private_key" "instance_ssh" {
 }
 
 ############################################
-# Object Storage service: Uploads private key to Object Storage
-############################################
-
-#https://registry.terraform.io/providers/oracle/oci/latest/docs/resources/objectstorage_object
-resource "oci_objectstorage_object" "private_key" {
-  #Required
-  bucket     = oci_objectstorage_bucket.bucket.name
-  content    = tls_private_key.instance_ssh.private_key_pem
-  namespace  = data.oci_objectstorage_namespace.ns.namespace
-  object     = "instance_private_key.pem"
-
-  depends_on = [oci_objectstorage_bucket.bucket]
-}
-
-############################################
 # Data Source: Oracle Linux Image
 ############################################
 
 #https://registry.terraform.io/providers/oracle/oci/latest/docs/data-sources/core_images
 data "oci_core_images" "oracle_linux" {
   #Required
-  compartment_id           = var.compartment_ocid
-  
+  compartment_id = var.compartment_ocid
+
   #Optional
   operating_system         = "Oracle Linux"
   operating_system_version = "9"
@@ -61,13 +46,15 @@ data "template_file" "user_data" {
     bucket_name        = oci_objectstorage_bucket.bucket.name
     oci_config_content = file("${path.module}/.oci/config")
     oci_key_content    = file("${path.module}/.oci/key.pem")
+    source_repo_url    = var.source_repo_url
+    source_ref         = var.source_ref
     env = templatefile("${path.module}/templatefile/.env.tmpl", {
       compartment_ocid                       = var.compartment_ocid
       autonomous_database_admin_password     = var.autonomous_database_admin_password
-      autonomous_database_db_name            = var._oci_autonomous_database.db_name
+      autonomous_database_db_name            = local.adb_db_name
       autonomous_database_developer_password = var.autonomous_database_developer_password
       autonomous_database_wallet_password    = var.autonomous_database_wallet_password
-      namespace                              = data.oci_objectstorage_namespace.ns.namespace
+      namespace                              = var.objectstorage_namespace
       bucket_name                            = oci_objectstorage_bucket.bucket.name
       region                                 = var.region
     })
@@ -84,6 +71,12 @@ resource "oci_core_instance" "linux_instance" {
   compartment_id      = var.compartment_ocid
   shape               = var._oci_instance.shape.name
 
+  lifecycle {
+    ignore_changes = [
+      source_details[0].source_id,
+    ]
+  }
+
   source_details {
     source_id   = data.oci_core_images.oracle_linux.images[0].id
     source_type = "image"
@@ -99,12 +92,12 @@ resource "oci_core_instance" "linux_instance" {
     assign_public_ip = true
   }
 
-  display_name = var._oci_instance.display_name
+  display_name = local.instance_display_name
 
   metadata = {
     ssh_authorized_keys = tls_private_key.instance_ssh.public_key_openssh
     #https://cloudinit.readthedocs.io/en/latest/explanation/format.html
-    user_data           = base64encode(data.template_file.user_data.rendered)
+    user_data = base64encode(data.template_file.user_data.rendered)
   }
 
   depends_on = [
@@ -120,7 +113,7 @@ resource "null_resource" "wait_for_userdata" {
   depends_on = [oci_core_instance.linux_instance]
 
   triggers = {
-    instance_id   = oci_core_instance.linux_instance.id
+    instance_id = oci_core_instance.linux_instance.id
   }
 
   connection {
@@ -128,7 +121,7 @@ resource "null_resource" "wait_for_userdata" {
     host        = oci_core_instance.linux_instance.public_ip
     user        = "opc"
     private_key = tls_private_key.instance_ssh.private_key_pem
-    timeout     = "20m"
+    timeout     = "40m"
   }
 
   provisioner "remote-exec" {

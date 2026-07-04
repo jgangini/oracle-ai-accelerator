@@ -202,10 +202,12 @@ Para copiar el proyecto a la máquina virtual, siga estos pasos:(Github)
 
 #### g) Configure Environment Variables (.env)
 
-- Edite el archivo `.env` ubicado en:
-  ```plaintext
-  C:\oracle-ai-accelerator/app/.env
+- Copie la plantilla versionada `app/.env.example` como `app/.env` y edite únicamente la copia local:
+  ```cmd
+  copy C:\oracle-ai-accelerator\app\.env.example C:\oracle-ai-accelerator\app\.env
   ```
+
+> 🚨 No confirme `app/.env` en Git. Puede contener OCIDs, nombres de buckets y contraseñas del laboratorio.
 
 #### h) Run Environment Setup Script (setup.py)
 

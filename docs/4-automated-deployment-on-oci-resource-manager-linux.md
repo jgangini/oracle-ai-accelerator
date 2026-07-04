@@ -56,57 +56,19 @@ o descarguelo abriendo [esta url](https://github.com/jganggini/oracle-ai-acceler
 
 ![download_repo](./images/download_repo.png)
 
-#### Paso 4: Generar la key
+#### Paso 4: Desplegar con Deploy Studio
 
-- Ingrese a ➡️ `Identity & Security` ➡️ `Domains` ➡️ `My profile`
-- Seleccione su usuario.
-- Ingrese a ➡️ `Tokens and keys` ➡️ `Add API Key` ➡️ `Generate API Key pair` ➡️ `[Download private key]`
-  - Seleccione `[Add]`
-  - Seleccione `[Copy]`
-  
-  - Copie el texto de configuración `config` sin la última línea
+El Terraform soportado está en [`infra/terraform`](../infra/terraform) y su contrato público está en [`deploy-studio.json`](../deploy-studio.json).
 
-> 🚨 La última línea corresponde a la ruta en la instancia virtual, entonces la última línea debe mantenerse con la ruta /home/opc/.oci/key.pem
+1. Abra Oracle AI Accelerator en Deploy Studio y seleccione un release publicado.
+2. Cargue `config` y la clave PEM desde el formulario seguro.
+3. Seleccione la región y un compartimento nuevo o existente.
+4. Complete las tres contraseñas solicitadas y ejecute el preflight.
+5. Revise el PLAN de OCI Resource Manager antes de autorizar el APPLY.
 
-  ```plaintext
-  [DEFAULT]
-  user=ocid1.user.oc1..***********
-  fingerprint=**:**:**:**:**:**:**:**:**:**:**:**:**:**:**:**
-  tenancy=ocid1.tenancy.oc1..***********
-  region=us-chicago-1
-  key_file=/home/opc/.oci/key.pem
-  ```
+> 🚨 No copie `config`, `key.pem`, wallets ni estados Terraform dentro del repositorio. Deploy Studio los incorpora sólo al paquete efímero del despliegue y los purga al finalizar.
 
-En el respositorio descargado encontrará una carpeta setup-tf.
-
-- Copie el texto de configuración [config](setup-tf/config) en
-  ```plaintext
-  .\setup-tf\.oci\config
-  ```
-- Sobreescriba el archivo key.pem en la siguiente ruta por el archivo descargado `.pem`.
-  ```plaintext
-  .\setup-tf\.oci\key.pem
-  ```
-
-  El folder debería quedar de la siguiente manera:
-
-  ![config files](../img/vw-setup-tf-config.png)
-
-#### d) Create Stack in OCI Resource Manager
-
-- Ingrese a ➡️ `Developer Services` ➡️ `Resource Manager` ➡️ `Stacks` ➡️ `Create Stack`.
-- Cree un `Stack` para el proyecto:
-
-  - Stack infomation:
-
-    - Choose the origin of the Terraform configuration: `My configuration`
-    - Stack configuration: `Folder` ➡️ `Browse`
-    - Seleccionar la carpeta: [setup-tf](setup-tf)
-    - Selecionar `Cargar`
-    - Name: `setup-tf-oracle-ai`
-    - Description: `setup-tf-oracle-ai`
-    - Create in compartment: `oracle-ai-demo`
-    - `[Next]`
+#### d) Variables administradas por Deploy Studio
 
   - 🛠️ Configuración de `variables` del Stack:
 
@@ -116,7 +78,7 @@ En el respositorio descargado encontrará una carpeta setup-tf.
 
     ### ⚠️ Campos que NO deben modificarse en la consola
 
-    Los siguientes campos están **configurados automáticamente** desde el archivo [`variables.tf`](setup-tf/variables.tf).
+    Los siguientes campos están **configurados automáticamente** desde el archivo [`variables.tf`](../infra/terraform/variables.tf).
     **No deben ser editados manualmente desde la consola web.**
 
     | Campo                        | Descripción                                                 |

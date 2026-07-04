@@ -8,8 +8,8 @@ resource "oci_core_vcn" "vcn" {
   compartment_id = var.compartment_ocid
 
   #Optional
-  display_name   = var._oci_vcn.display_name
-  cidr_block     = var._oci_vcn.cidr_block
+  display_name = local.vcn_display_name
+  cidr_block   = var._oci_vcn.cidr_block
 }
 
 ############################################
@@ -22,7 +22,7 @@ resource "oci_core_subnet" "subnet" {
   cidr_block     = var._oci_vcn.cidr_block
   compartment_id = var.compartment_ocid
   vcn_id         = oci_core_vcn.vcn.id
-  
+
   #Optional
   display_name               = "public-subnet"
   prohibit_internet_ingress  = false

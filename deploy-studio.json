@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "project_id": "oracle-ai-accelerator",
+  "terraform": {
+    "path": "infra/terraform",
+    "package_oci_credentials": true
+  },
+  "capabilities": {
+    "compartment_modes": [
+      "new",
+      "existing"
+    ],
+    "requires_genai_region": true,
+    "database_profile": "new"
+  },
+  "form": {
+    "fields": [
+      {
+        "name": "autonomous_database_admin_password",
+        "label": "Autonomous Database ADMIN password",
+        "type": "password",
+        "required": true,
+        "secret": true
+      },
+      {
+        "name": "autonomous_database_wallet_password",
+        "label": "Autonomous Database wallet password",
+        "type": "password",
+        "required": true,
+        "secret": true
+      },
+      {
+        "name": "autonomous_database_developer_password",
+        "label": "Oracle AI application password",
+        "type": "password",
+        "required": true,
+        "secret": true
+      },
+      {
+        "name": "application_username",
+        "label": "Application username",
+        "type": "text",
+        "required": true,
+        "default": "admin"
+      }
+    ]
+  },
+  "outputs": [
+    "application_url",
+    "ssh_user",
+    "adb_db_name",
+    "autonomous_database_id",
+    "bucket_name"
+  ],
+  "artifacts": [
+    "adb_wallet.zip",
+    "ssh-private-key.pem",
+    "connection-summary.txt",
+    "application-password.txt",
+    "adb-admin-password.txt",
+    "wallet-password.txt"
+  ],
+  "post_apply": null
+}
