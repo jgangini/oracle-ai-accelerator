@@ -17,21 +17,14 @@
     "fields": [
       {
         "name": "autonomous_database_admin_password",
-        "label": "Autonomous Database ADMIN password",
+        "label": "Database ADMIN password",
         "type": "password",
         "required": true,
         "secret": true
       },
       {
         "name": "autonomous_database_wallet_password",
-        "label": "Autonomous Database wallet password",
-        "type": "password",
-        "required": true,
-        "secret": true
-      },
-      {
-        "name": "autonomous_database_developer_password",
-        "label": "Oracle AI application password",
+        "label": "Database wallet password",
         "type": "password",
         "required": true,
         "secret": true
@@ -42,6 +35,13 @@
         "type": "text",
         "required": true,
         "default": "admin"
+      },
+      {
+        "name": "autonomous_database_developer_password",
+        "label": "Application password",
+        "type": "password",
+        "required": true,
+        "secret": true
       }
     ]
   },
