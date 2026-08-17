@@ -45,6 +45,32 @@
       }
     ]
   },
+  "presentation": {
+    "title": "Oracle AI Accelerator",
+    "summary": "Deploys an OCI solution for document, image, audio and text intelligence with Oracle AI Database, Generative AI and vector workflows.",
+    "tags": ["Oracle AI Database 26ai", "Generative AI", "Agents", "Select AI"],
+    "image": "/assets/oracle-ai-accelerator.png",
+    "image_alt": "Oracle AI Accelerator sign-in preview",
+    "href": "https://github.com/jgangini/oracle-ai-accelerator"
+  },
+  "run_steps": [
+    {"key": "queue", "label": "Queue"},
+    {"key": "credentials", "label": "OCI credentials"},
+    {"key": "compartment", "label": "Compartment"},
+    {"key": "policies", "label": "IAM policies"},
+    {"key": "stack", "label": "Resource Manager stack"},
+    {"key": "plan", "label": "Terraform plan"},
+    {"key": "apply", "label": "Terraform apply"},
+    {"key": "network", "label": "Network and VCN"},
+    {"key": "bucket", "label": "Object Storage"},
+    {"key": "compute", "label": "Application VM"},
+    {"key": "database", "label": "Autonomous Database"},
+    {"key": "wallet", "label": "Database wallet"},
+    {"key": "application", "label": "Application setup"},
+    {"key": "artifacts", "label": "Access artifacts"},
+    {"key": "email", "label": "Access email"},
+    {"key": "complete", "label": "Ready"}
+  ],
   "outputs": [
     "application_url",
     "ssh_user",
