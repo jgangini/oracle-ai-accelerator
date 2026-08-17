@@ -2,7 +2,7 @@
   "schema_version": 1,
   "project_id": "oracle-ai-accelerator",
   "terraform": {
-    "path": "infra/terraform",
+    "path": "terraform",
     "package_oci_credentials": true
   },
   "capabilities": {

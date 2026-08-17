@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 class DeployStudioContractTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.contract = json.loads((ROOT / "deploy-studio.json").read_text(encoding="utf-8"))
+        cls.contract = json.loads((ROOT / "terraform" / "deploy-studio.json").read_text(encoding="utf-8"))
 
     def test_contract_identity_and_terraform_path(self) -> None:
         self.assertEqual(self.contract["schema_version"], 1)
@@ -29,7 +29,7 @@ class DeployStudioContractTests(unittest.TestCase):
         self.assertIsNone(self.contract["post_apply"])
 
     def test_default_resource_names_derive_from_deployment_suffix(self) -> None:
-        naming = (ROOT / "infra" / "terraform" / "naming.tf").read_text(encoding="utf-8")
+        naming = (ROOT / "terraform" / "naming.tf").read_text(encoding="utf-8")
         for legacy_override in ("bucket_name", "adb_db_name", "adb_display_name", "vcn_display_name", "instance_display_name"):
             self.assertIn(f'var.{legacy_override} != ""', naming)
         self.assertGreaterEqual(naming.count("var.deployment_suffix"), 5)

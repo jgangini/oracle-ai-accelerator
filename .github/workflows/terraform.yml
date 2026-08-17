@@ -3,8 +3,7 @@ name: Validate Terraform
 on:
   pull_request:
     paths:
-      - "deploy-studio.json"
-      - "infra/terraform/**"
+      - "terraform/**"
       - "tests/test_deploy_studio_contract.py"
       - ".github/workflows/terraform.yml"
   push:
@@ -13,8 +12,7 @@ on:
     tags:
       - "v*"
     paths:
-      - "deploy-studio.json"
-      - "infra/terraform/**"
+      - "terraform/**"
       - "tests/test_deploy_studio_contract.py"
       - ".github/workflows/terraform.yml"
 
@@ -42,18 +40,18 @@ jobs:
       - name: Prepare synthetic credential placeholders
         shell: bash
         run: |
-          mkdir -p infra/terraform/.oci
-          cp infra/terraform/config.example infra/terraform/.oci/config
-          printf '%s\n' 'synthetic-ci-placeholder' > infra/terraform/.oci/key.pem
+          mkdir -p terraform/.oci
+          cp terraform/config.example terraform/.oci/config
+          printf '%s\n' 'synthetic-ci-placeholder' > terraform/.oci/key.pem
 
       - name: Check Terraform formatting
-        run: terraform fmt -check -recursive infra/terraform
+        run: terraform fmt -check -recursive terraform
 
       - name: Initialize Terraform
-        run: terraform -chdir=infra/terraform init -backend=false -input=false
+        run: terraform -chdir=terraform init -backend=false -input=false
 
       - name: Validate Terraform
-        run: terraform -chdir=infra/terraform validate
+        run: terraform -chdir=terraform validate
 
   release:
     runs-on: ubuntu-latest

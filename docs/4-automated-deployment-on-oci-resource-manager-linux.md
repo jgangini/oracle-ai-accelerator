@@ -58,7 +58,7 @@ o descarguelo abriendo [esta url](https://github.com/jganggini/oracle-ai-acceler
 
 #### Paso 4: Desplegar con Deploy Studio
 
-El Terraform soportado está en [`infra/terraform`](../infra/terraform) y su contrato público está en [`deploy-studio.json`](../deploy-studio.json).
+El Terraform soportado está en [`terraform`](../terraform) y su contrato público está en [`terraform/deploy-studio.json`](../terraform/deploy-studio.json).
 
 1. Abra Oracle AI Accelerator en Deploy Studio y seleccione un release publicado.
 2. Cargue `config` y la clave PEM desde el formulario seguro.
@@ -78,7 +78,7 @@ El Terraform soportado está en [`infra/terraform`](../infra/terraform) y su con
 
     ### ⚠️ Campos que NO deben modificarse en la consola
 
-    Los siguientes campos están **configurados automáticamente** desde el archivo [`variables.tf`](../infra/terraform/variables.tf).
+    Los siguientes campos están **configurados automáticamente** desde el archivo [`variables.tf`](../terraform/variables.tf).
     **No deben ser editados manualmente desde la consola web.**
 
     | Campo                        | Descripción                                                 |
