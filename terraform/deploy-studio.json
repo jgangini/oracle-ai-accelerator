@@ -20,28 +20,32 @@
         "label": "Database ADMIN password",
         "type": "password",
         "required": true,
-        "secret": true
+        "secret": true,
+        "group": "database"
       },
       {
         "name": "autonomous_database_wallet_password",
         "label": "Database wallet password",
         "type": "password",
         "required": true,
-        "secret": true
+        "secret": true,
+        "group": "database"
       },
       {
         "name": "application_username",
         "label": "Application username",
         "type": "text",
         "required": true,
-        "default": "admin"
+        "default": "admin",
+        "group": "application_vm"
       },
       {
         "name": "autonomous_database_developer_password",
         "label": "Application password",
         "type": "password",
         "required": true,
-        "secret": true
+        "secret": true,
+        "group": "application_vm"
       }
     ]
   },
