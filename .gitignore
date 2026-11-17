@@ -1,0 +1,14 @@
+# Local credentials and runtime configuration
+.env
+.oci/
+*.pem
+
+# Terraform working files and state
+**/.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+
+# Python test cache
+__pycache__/
+*.py[cod]
