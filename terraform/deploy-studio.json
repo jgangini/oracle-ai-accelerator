@@ -134,6 +134,11 @@
         "min_length": 12,
         "max_length": 30
       }
+    ],
+    "email_access_fields": [
+      "autonomous_database_admin_password",
+      "autonomous_database_wallet_password",
+      "autonomous_database_developer_password"
     ]
   },
   "presentation": {
@@ -204,12 +209,53 @@
   ],
   "artifacts": [
     "adb_wallet.zip",
-    "ssh-private-key.pem",
-    "connection-summary.txt",
-    "application-password.txt",
-    "adb-admin-password.txt",
-    "wallet-password.txt"
+    "ssh-private-key.pem"
   ],
   "post_apply": null,
-  "execution_source": "oci_resource_manager"
+  "execution_source": "oci_resource_manager",
+  "email": {
+    "services": [
+      {
+        "title": "Autonomous Database",
+        "fields": [
+          {
+            "label": "User",
+            "value": "ADMIN"
+          },
+          {
+            "label": "Password",
+            "input": "autonomous_database_admin_password"
+          },
+          {
+            "label": "Wallet Password",
+            "input": "autonomous_database_wallet_password"
+          }
+        ]
+      },
+      {
+        "title": "Application VM",
+        "fields": [
+          {
+            "label": "Access URL",
+            "output": "application_url",
+            "link": true
+          },
+          {
+            "label": "User",
+            "value": "admin"
+          },
+          {
+            "label": "Password",
+            "input": "autonomous_database_developer_password"
+          }
+        ]
+      }
+    ],
+    "attachments": [
+      "adb_wallet.zip",
+      "ssh-private-key.pem",
+      "deployment.log",
+      "resource-manager-terraform-source.zip"
+    ]
+  }
 }

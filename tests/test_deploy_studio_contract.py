@@ -59,17 +59,28 @@ class DeployStudioContractTests(unittest.TestCase):
         self.assertGreaterEqual(naming.count("var.deployment_suffix"), 5)
 
     def test_declares_all_deploy_studio_artifacts(self) -> None:
-        self.assertEqual(
-            set(self.contract["artifacts"]),
-            {
-                "adb_wallet.zip",
-                "ssh-private-key.pem",
-                "connection-summary.txt",
-                "application-password.txt",
-                "adb-admin-password.txt",
-                "wallet-password.txt",
-            },
-        )
+        self.assertEqual(set(self.contract["artifacts"]), {"adb_wallet.zip", "ssh-private-key.pem"})
+
+    def test_email_access_follows_form_order(self) -> None:
+        email = self.contract["email"]
+        database, application = email["services"]
+        self.assertEqual([database["title"], application["title"]], ["Autonomous Database", "Application VM"])
+        self.assertEqual(database["fields"], [
+            {"label": "User", "value": "ADMIN"},
+            {"label": "Password", "input": "autonomous_database_admin_password"},
+            {"label": "Wallet Password", "input": "autonomous_database_wallet_password"},
+        ])
+        self.assertEqual(application["fields"], [
+            {"label": "Access URL", "output": "application_url", "link": True},
+            {"label": "User", "value": "admin"},
+            {"label": "Password", "input": "autonomous_database_developer_password"},
+        ])
+        self.assertEqual(self.contract["form"]["email_access_fields"], [
+            field["input"] for service in email["services"] for field in service["fields"] if "input" in field
+        ])
+        self.assertEqual(email["attachments"], [
+            "adb_wallet.zip", "ssh-private-key.pem", "deployment.log", "resource-manager-terraform-source.zip",
+        ])
 
     def test_application_files_use_a_private_bucket(self) -> None:
         bucket = (ROOT / "terraform" / "b_oci_objectstorage_bucket.tf").read_text(encoding="utf-8")
