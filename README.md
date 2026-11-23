@@ -33,6 +33,9 @@ En el despliegue, Deploy Studio inicia el aprovisionamiento mediante OCI Resourc
 
 ## Documentación
 
+- [Arquitectura](docs/architecture.md) y recorrido desde el despliegue hasta el uso del laboratorio.
+- [Pruebas y validación](docs/testing.md) del contrato y de Terraform.
+- [Tutorial de Document Understanding](docs/tutorial.md) para procesar el primer PDF.
 - [Activar una cuenta de Oracle Cloud](docs/1-create-and-activate-an-oracle-cloud-account.md)
 - [Preparar servicios y permisos OCI](docs/2-creating-and-preparing-services-for-the-project.md)
 - [Ejecutar la aplicación en Windows](docs/3-instance-or-local-machine-configuration-windows.md)
