@@ -10,6 +10,6 @@ resource "oci_objectstorage_bucket" "bucket" {
   namespace      = var.objectstorage_namespace
 
   #Optional
-  access_type  = var._oci_bucket_name.access_type
+  access_type  = "NoPublicAccess"
   storage_tier = "Standard"
 }

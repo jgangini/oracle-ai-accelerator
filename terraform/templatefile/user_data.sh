@@ -1,7 +1,11 @@
 #!/bin/bash
 set -euo pipefail
-SOURCE_REPO_URL="${source_repo_url}"
-SOURCE_REF="${source_ref}"
+install -d -m 0755 /var/local
+trap 'touch /var/local/userdata.failed' ERR
+SOURCE_REPO_URL=$(printf '%s' '${source_repo_base64}' | base64 -d)
+SOURCE_REF=$(printf '%s' '${source_ref_base64}' | base64 -d)
+SOURCE_COMMIT_SHA='${source_commit_sha}'
+CHECKOUT=/home/opc/oracle-ai-accelerator
 yum makecache
 yum install -y git vim python3 python3-pip python3-devel alsa-lib-devel firewalld unzip wget
 dnf -y install oraclelinux-developer-release-el9
@@ -15,10 +19,10 @@ firewall-cmd --reload
 dnf -y install python3.11 python3.11-devel
 python3.11 -m venv /home/opc/.venv
 chown -R opc:opc /home/opc/.venv
-echo 'if [ -d "$$HOME/.venv" ]; then source "$$HOME/.venv/bin/activate"; fi' >> /home/opc/.bashrc
+echo 'if [ -d "$HOME/.venv" ]; then source "$HOME/.venv/bin/activate"; fi' >> /home/opc/.bashrc
 chown opc:opc /home/opc/.bashrc
-sudo -u opc -i bash -c 'source ~/.bashrc && python -m ensurepip --upgrade --default-pip'
-sudo -u opc -i bash -c 'source ~/.bashrc && python -m pip install --upgrade pip wheel setuptools'
+sudo -u opc /home/opc/.venv/bin/python -m ensurepip --upgrade --default-pip
+sudo -u opc /home/opc/.venv/bin/python -m pip install --upgrade pip wheel setuptools
 yum install -y gcc make autoconf automake libtool alsa-lib-devel git
 if [ ! -d "/root/portaudio" ]; then
   git clone --depth=1 https://github.com/PortAudio/portaudio.git /root/portaudio
@@ -29,8 +33,18 @@ make -j"$(nproc)"
 make install
 echo '/usr/local/lib' > /etc/ld.so.conf.d/portaudio.conf
 ldconfig
-git clone --depth=1 --branch "$SOURCE_REF" "$SOURCE_REPO_URL" /home/opc/oracle-ai-accelerator
-chown -R opc:opc /home/opc/oracle-ai-accelerator
+if [ -n "$SOURCE_COMMIT_SHA" ]; then
+  git init --quiet "$CHECKOUT"
+  git -C "$CHECKOUT" fetch --quiet --depth=1 -- "$SOURCE_REPO_URL" "$SOURCE_COMMIT_SHA"
+  git -C "$CHECKOUT" checkout --quiet --detach FETCH_HEAD
+  if [ "$(git -C "$CHECKOUT" rev-parse HEAD)" != "$SOURCE_COMMIT_SHA" ]; then
+    echo 'Git checkout did not match the selected release commit.' >&2
+    false
+  fi
+else
+  git clone --depth=1 --branch "$SOURCE_REF" -- "$SOURCE_REPO_URL" "$CHECKOUT"
+fi
+chown -R opc:opc "$CHECKOUT"
 python3 - <<'PY'
 from pathlib import Path
 
@@ -55,11 +69,11 @@ if old not in users_text:
 users_sql.write_text(users_text.replace(old, new), encoding="utf-8")
 PY
 chown -R opc:opc /home/opc/oracle-ai-accelerator/setup
-mkdir -p /home/opc/.oci
-echo "${oci_config_content}" > /home/opc/.oci/config
-echo "${oci_key_content}" > /home/opc/.oci/key.pem
-chmod 600 /home/opc/.oci/*
-chown -R opc:opc /home/opc/.oci
+install -d -m 0700 -o opc -g opc /home/opc/.oci
+install -m 0600 -o opc -g opc /dev/null /home/opc/.oci/config
+install -m 0600 -o opc -g opc /dev/null /home/opc/.oci/key.pem
+printf '%s' '${oci_config_base64}' | base64 -d > /home/opc/.oci/config
+printf '%s' '${oci_key_base64}' | base64 -d > /home/opc/.oci/key.pem
 mkdir -p /home/opc/oracle-ai-accelerator/app/wallet
 OCI_CLI_CONFIG_FILE=/home/opc/.oci/config oci os object get \
   --bucket-name ${bucket_name} \
@@ -74,10 +88,10 @@ OCI_CLI_CONFIG_FILE=/home/opc/.oci/config oci os object delete \
   --bucket-name ${bucket_name} \
   --name adb_wallet.zip \
   --force
-echo "${env}" > /home/opc/oracle-ai-accelerator/app/.env
-chmod 600 /home/opc/oracle-ai-accelerator/app/.env
-chown opc:opc /home/opc/oracle-ai-accelerator/app/.env
+install -m 0600 -o opc -g opc /dev/null /home/opc/oracle-ai-accelerator/app/.env
+printf '%s' '${env_base64}' | base64 -d > /home/opc/oracle-ai-accelerator/app/.env
 sudo -u opc -i bash <<'EOF'
+set -euo pipefail
 cd /home/opc/oracle-ai-accelerator/setup
 source /home/opc/.venv/bin/activate
 python --version
@@ -467,8 +481,9 @@ cat /home/opc/load_test_results.txt >> /home/opc/startup_info.txt
 
 chown opc:opc /home/opc/startup_info.txt
 
-# Step 19: Mark userdata completion (sentinel)
-mkdir -p /var/local
+# Verify the application through Nginx before signaling deployment completion.
+curl --fail --silent --show-error --insecure --retry 12 --retry-connrefused \
+     --retry-max-time 90 --max-time 5 https://127.0.0.1/_stcore/health > /dev/null
 touch /var/local/userdata.done
 
 # Display startup information

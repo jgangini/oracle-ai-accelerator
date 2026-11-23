@@ -8,9 +8,6 @@ terraform {
     oci = {
       source = "oracle/oci"
     }
-    template = {
-      source = "hashicorp/template"
-    }
     tls = {
       source = "hashicorp/tls"
     }
