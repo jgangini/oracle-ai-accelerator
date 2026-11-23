@@ -100,16 +100,14 @@ variable "source_ref" {
   default     = "main"
 }
 
-############################################
-# Bucket
-############################################
+variable "source_commit_sha" {
+  description = "Immutable Git commit selected by Deploy Studio. Empty uses source_ref for manual deployments."
+  type        = string
+  default     = ""
 
-variable "_oci_bucket_name" {
-  description = "Object Storage bucket defaults from upstream setup-tf, parameterized by CloudTechNext."
-
-  default = {
-    name        = "buk-oracle-ai"
-    access_type = "ObjectRead"
+  validation {
+    condition     = var.source_commit_sha == "" || can(regex("^[0-9a-f]{40}$", var.source_commit_sha))
+    error_message = "source_commit_sha must be empty or a 40-character Git commit SHA."
   }
 }
 

@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "project_id": "oracle-ai-accelerator",
   "terraform": {
     "path": "terraform",
@@ -11,9 +11,95 @@
       "existing"
     ],
     "requires_genai_region": true,
-    "database_profile": "new"
+    "database_profile": "new",
+    "default_compartment_name": "oracle-ai-accelerator",
+    "region_selection": "config"
   },
   "form": {
+    "groups": [
+      {
+        "id": "credentials",
+        "title": "OCI credentials",
+        "items": [
+          {
+            "kind": "control",
+            "name": "oci_config",
+            "label": "OCI config",
+            "span": 1
+          },
+          {
+            "kind": "control",
+            "name": "oci_key",
+            "label": "API private key",
+            "span": 1
+          }
+        ]
+      },
+      {
+        "id": "services",
+        "title": "Services to deploy",
+        "items": [
+          {
+            "kind": "control",
+            "name": "oci_region",
+            "label": "OCI region",
+            "span": 2
+          },
+          {
+            "kind": "control",
+            "name": "compartment_mode",
+            "label": "Compartment mode",
+            "span": 1,
+            "options": [
+              {
+                "value": "new",
+                "label": "New compartment"
+              },
+              {
+                "value": "existing",
+                "label": "Existing compartment"
+              }
+            ]
+          },
+          {
+            "kind": "control",
+            "name": "new_compartment",
+            "label": "New compartment name",
+            "span": 1
+          },
+          {
+            "kind": "control",
+            "name": "existing_compartment",
+            "label": "Existing compartment",
+            "span": 1
+          }
+        ]
+      },
+      {
+        "id": "database",
+        "title": "Autonomous Database",
+        "items": [
+          {
+            "kind": "field",
+            "name": "autonomous_database_admin_password"
+          },
+          {
+            "kind": "field",
+            "name": "autonomous_database_wallet_password"
+          }
+        ]
+      },
+      {
+        "id": "application_vm",
+        "title": "Application VM",
+        "items": [
+          {
+            "kind": "field",
+            "name": "autonomous_database_developer_password"
+          }
+        ]
+      }
+    ],
     "fields": [
       {
         "name": "autonomous_database_admin_password",
@@ -21,7 +107,10 @@
         "type": "password",
         "required": true,
         "secret": true,
-        "group": "database"
+        "group": "database",
+        "generate_password": true,
+        "min_length": 12,
+        "max_length": 30
       },
       {
         "name": "autonomous_database_wallet_password",
@@ -29,15 +118,10 @@
         "type": "password",
         "required": true,
         "secret": true,
-        "group": "database"
-      },
-      {
-        "name": "application_username",
-        "label": "Application username",
-        "type": "text",
-        "required": true,
-        "default": "admin",
-        "group": "application_vm"
+        "group": "database",
+        "generate_password": true,
+        "min_length": 12,
+        "max_length": 30
       },
       {
         "name": "autonomous_database_developer_password",
@@ -45,35 +129,71 @@
         "type": "password",
         "required": true,
         "secret": true,
-        "group": "application_vm"
+        "group": "application_vm",
+        "generate_password": true,
+        "min_length": 12,
+        "max_length": 30
       }
     ]
   },
   "presentation": {
     "title": "Oracle AI Accelerator",
     "summary": "Deploys an OCI solution for document, image, audio and text intelligence with Oracle AI Database, Generative AI and vector workflows.",
-    "tags": ["Oracle AI Database 26ai", "Generative AI", "Agents", "Select AI"],
+    "tags": [
+      "Oracle AI Database 26ai",
+      "Generative AI",
+      "Agents",
+      "Select AI"
+    ],
     "image": "/assets/oracle-ai-accelerator.png",
     "image_alt": "Oracle AI Accelerator sign-in preview",
     "href": "https://github.com/jgangini/oracle-ai-accelerator"
   },
   "run_steps": [
-    {"key": "queue", "label": "Queue"},
-    {"key": "credentials", "label": "OCI credentials"},
-    {"key": "compartment", "label": "Compartment"},
-    {"key": "policies", "label": "IAM policies"},
-    {"key": "stack", "label": "Resource Manager stack"},
-    {"key": "plan", "label": "Terraform plan"},
-    {"key": "apply", "label": "Terraform apply"},
-    {"key": "network", "label": "Network and VCN"},
-    {"key": "bucket", "label": "Object Storage"},
-    {"key": "compute", "label": "Application VM"},
-    {"key": "database", "label": "Autonomous Database"},
-    {"key": "wallet", "label": "Database wallet"},
-    {"key": "application", "label": "Application setup"},
-    {"key": "artifacts", "label": "Access artifacts"},
-    {"key": "email", "label": "Access email"},
-    {"key": "complete", "label": "Ready"}
+    {
+      "key": "queue",
+      "label": "Queue"
+    },
+    {
+      "key": "credentials",
+      "label": "OCI credentials"
+    },
+    {
+      "key": "compartment",
+      "label": "Compartment"
+    },
+    {
+      "key": "policies",
+      "label": "IAM policies"
+    },
+    {
+      "key": "stack",
+      "label": "Resource Manager stack"
+    },
+    {
+      "key": "plan",
+      "label": "Terraform plan"
+    },
+    {
+      "key": "apply",
+      "label": "Terraform apply"
+    },
+    {
+      "key": "application",
+      "label": "Application setup"
+    },
+    {
+      "key": "artifacts",
+      "label": "Access artifacts"
+    },
+    {
+      "key": "email",
+      "label": "Access email"
+    },
+    {
+      "key": "complete",
+      "label": "Ready"
+    }
   ],
   "outputs": [
     "application_url",
@@ -90,5 +210,6 @@
     "adb-admin-password.txt",
     "wallet-password.txt"
   ],
-  "post_apply": null
+  "post_apply": null,
+  "execution_source": "oci_resource_manager"
 }

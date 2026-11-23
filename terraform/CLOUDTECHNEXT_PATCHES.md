@@ -15,3 +15,5 @@ CloudTechNext keeps the upstream structure and applies a small launchpad layer:
 - Uses the application password from the form for the default `admin` app login.
 - Normalizes Terraform package line endings to Linux before Resource Manager upload.
 - Skips load testing during cloud-init so provisioning focuses on app readiness.
+- Uses the v2 manifest layout and deploys application code from the same Git commit as Terraform.
+- Stages the wallet in a private bucket and checks Streamlit readiness before signaling success to Resource Manager.

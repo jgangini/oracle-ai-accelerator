@@ -35,20 +35,18 @@ data "oci_identity_availability_domains" "ads" {
 }
 
 ############################################
-# The template_file data source renders a template from a template string
+# Compute bootstrap
 ############################################
 
-#https://registry.terraform.io/providers/hashicorp/template/latest/docs/data-sources/file
-data "template_file" "user_data" {
-  template = file("${path.module}/templatefile/user_data.sh")
-
-  vars = {
+locals {
+  user_data = templatefile("${path.module}/templatefile/user_data.sh", {
     bucket_name        = oci_objectstorage_bucket.bucket.name
-    oci_config_content = file("${path.module}/.oci/config")
-    oci_key_content    = file("${path.module}/.oci/key.pem")
-    source_repo_url    = var.source_repo_url
-    source_ref         = var.source_ref
-    env = templatefile("${path.module}/templatefile/.env.tmpl", {
+    oci_config_base64  = filebase64("${path.module}/.oci/config")
+    oci_key_base64     = filebase64("${path.module}/.oci/key.pem")
+    source_repo_base64 = base64encode(var.source_repo_url)
+    source_ref_base64  = base64encode(var.source_ref)
+    source_commit_sha  = var.source_commit_sha
+    env_base64 = base64encode(templatefile("${path.module}/templatefile/.env.tmpl", {
       compartment_ocid                       = var.compartment_ocid
       autonomous_database_admin_password     = var.autonomous_database_admin_password
       autonomous_database_db_name            = local.adb_db_name
@@ -57,8 +55,8 @@ data "template_file" "user_data" {
       namespace                              = var.objectstorage_namespace
       bucket_name                            = oci_objectstorage_bucket.bucket.name
       region                                 = var.region
-    })
-  }
+    }))
+  })
 }
 
 ############################################
@@ -97,7 +95,7 @@ resource "oci_core_instance" "linux_instance" {
   metadata = {
     ssh_authorized_keys = tls_private_key.instance_ssh.public_key_openssh
     #https://cloudinit.readthedocs.io/en/latest/explanation/format.html
-    user_data = base64encode(data.template_file.user_data.rendered)
+    user_data = base64encode(local.user_data)
   }
 
   depends_on = [
@@ -127,7 +125,7 @@ resource "null_resource" "wait_for_userdata" {
   provisioner "remote-exec" {
     inline = [
       "echo '[INI] Setup started...............'",
-      "while [ ! -f /var/local/userdata.done ]; do sleep 5; done",
+      "timeout 45m sh -c 'until [ -f /var/local/userdata.done ]; do if [ -f /var/local/userdata.failed ]; then exit 1; fi; sleep 5; done' || { echo 'Application bootstrap failed or timed out. Check cloud-init status on the VM.' >&2; exit 1; }",
       "echo ''",
       "cat /home/opc/startup_info.txt | sed 's/\\[PUBLIC-IP\\]/${oci_core_instance.linux_instance.public_ip}/g'",
       "echo ''",
