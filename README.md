@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/oracle-ai-accelerator-cover.png" alt="Mascota roja de Oracle AI Accelerator con forma de globo de conversación y un ojo guiñado" width="176">
+  <img src="docs/assets/oracle-ai-accelerator-mascot-transparent.png" alt="Mascota roja de Oracle AI Accelerator con forma de globo de conversación y un ojo guiñado" width="176">
 </p>
 
 <h3 align="center">Oracle AI Accelerator</h3>
