@@ -4,8 +4,7 @@ Este recorrido usa el módulo de documentos para extraer texto de un PDF y consu
 
 ## Preparar el laboratorio
 
-- Para instalarlo en OCI, prepara la [cuenta](1-create-and-activate-an-oracle-cloud-account.md) y los [servicios y permisos](2-creating-and-preparing-services-for-the-project.md), y sigue la [guía de Deploy Studio](4-automated-deployment-on-oci-resource-manager-linux.md).
-- Para preparar una instalación de demostración en Windows, consulta la [guía local](3-instance-or-local-machine-configuration-windows.md).
+- Para instalar el laboratorio, prepara un perfil OCI con clave de API y permisos en el compartimento de destino. [Flujo de despliegue](architecture.md#despliegue)
 - Inicia sesión con un usuario que tenga acceso al módulo **3: AI Document Understanding**. Usa un PDF de prueba autorizado y sin datos sensibles.
 
 ## Cargar y procesar el PDF

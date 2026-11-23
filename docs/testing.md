@@ -29,4 +29,4 @@ terraform -chdir=terraform validate
 
 ## Si ya existe un despliegue
 
-En Deploy Studio, comprueba que el trabajo haya terminado y abre **Application URL**. La VM pasa la comprobación de salud cuando Streamlit responde por HTTPS al terminar la inicialización. Inicia sesión y comprueba que el menú de módulos esté disponible. Si falla, consulta la [guía de despliegue](4-automated-deployment-on-oci-resource-manager-linux.md).
+En Deploy Studio, comprueba que el trabajo haya terminado y abre **Application URL**. La VM pasa la comprobación de salud cuando Streamlit responde por HTTPS al terminar la inicialización. Inicia sesión y comprueba que el menú de módulos esté disponible. Si la aplicación no responde, consulta los registros de cloud-init en la VM y del trabajo en OCI Resource Manager.

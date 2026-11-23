@@ -1,6 +1,6 @@
 # Terraform de Oracle AI Accelerator
 
-Esta carpeta contiene el paquete que Deploy Studio entrega a OCI Resource Manager. El contrato es [deploy-studio.json](deploy-studio.json). La [guía de despliegue](../docs/4-automated-deployment-on-oci-resource-manager-linux.md) describe el recorrido desde el formulario hasta el inicio de sesión.
+Esta carpeta contiene el paquete que Deploy Studio entrega a OCI Resource Manager. El contrato es [deploy-studio.json](deploy-studio.json). La [guía de despliegue](../docs/architecture.md#despliegue) describe el recorrido desde el formulario hasta el inicio de sesión.
 
 ## Contrato del paquete
 

@@ -15,7 +15,7 @@ Necesitas una cuenta de OCI, acceso a Deploy Studio y un perfil OCI con clave de
 3. Pulsa **Validate**. Cuando termine, selecciona **Deploy** para iniciar el plan y, si pasa, la creación automática de los recursos. Sigue el resultado en Deploy Studio.
 4. Abre la URL HTTPS del despliegue e inicia sesión como `admin` con el valor que ingresaste en **Application password**.
 
-[Guía de despliegue con Deploy Studio](docs/4-automated-deployment-on-oci-resource-manager-linux.md) · [Releases de GitHub](https://github.com/jgangini/oracle-ai-accelerator/releases)
+[Guía de despliegue con Deploy Studio](docs/architecture.md#despliegue) · [Releases de GitHub](https://github.com/jgangini/oracle-ai-accelerator/releases)
 
 ## Arquitectura de los componentes
 
@@ -29,16 +29,13 @@ Lee la figura por filas para seguir cada tipo de entrada y de izquierda a derech
 
 En el despliegue, Deploy Studio inicia el aprovisionamiento mediante OCI Resource Manager. La VM de Compute aloja Streamlit y obtiene el wallet de la base desde un bucket privado durante el arranque.
 
-[Modelo de datos](docs/5-data-model-documentation.md) · [Archivos SQL del esquema](setup/autonomous_database) · [Aplicación Streamlit](app/app.py)
+[Archivos SQL del esquema](setup/autonomous_database) · [Aplicación Streamlit](app/app.py)
 
 ## Documentación
 
 - [Arquitectura](docs/architecture.md) y recorrido desde el despliegue hasta el uso del laboratorio.
 - [Pruebas y validación](docs/testing.md) del contrato y de Terraform.
 - [Tutorial de Document Understanding](docs/tutorial.md) para procesar el primer PDF.
-- [Activar una cuenta de Oracle Cloud](docs/1-create-and-activate-an-oracle-cloud-account.md)
-- [Preparar servicios y permisos OCI](docs/2-creating-and-preparing-services-for-the-project.md)
-- [Ejecutar la aplicación en Windows](docs/3-instance-or-local-machine-configuration-windows.md)
 - [Contrato, infraestructura y validación de Terraform](terraform/README.md)
 - [Reportar un problema](https://github.com/jgangini/oracle-ai-accelerator/issues) y [ver las demos](https://youtube.com/playlist?list=PLMUWTQHw13gbqqVHaCid3gUBIlvfVKaBu)
 
