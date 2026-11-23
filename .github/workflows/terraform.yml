@@ -33,6 +33,7 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.9.8
+          terraform_wrapper: false
 
       - name: Validate Deploy Studio contract
         run: python -m unittest discover -s tests -p 'test_deploy_studio_contract.py' -v

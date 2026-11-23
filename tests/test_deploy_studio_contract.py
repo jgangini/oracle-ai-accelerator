@@ -92,8 +92,8 @@ class DeployStudioContractTests(unittest.TestCase):
             }
             expression = f"base64encode(templatefile({json.dumps(template.as_posix())}, {json.dumps(data)}))"
             console = subprocess.run(
-                ["terraform", "console"], cwd=work, input=expression + "\n",
-                check=True, capture_output=True, text=True,
+                ["terraform", "console", "-no-color"], cwd=work, input=expression + "\n",
+                check=True, capture_output=True, text=True, timeout=30,
             )
             rendered = base64.b64decode(json.loads(console.stdout.strip())).decode()
             self.assertIn(f"SOURCE_COMMIT_SHA='{sha}'", rendered)
