@@ -1,15 +1,19 @@
-# Oracle AI Accelerator Terraform Package
+# Terraform de Oracle AI Accelerator
 
-This directory contains the Resource Manager-ready Terraform package that the worker zips per deployment.
+Esta carpeta contiene el paquete que Deploy Studio entrega a OCI Resource Manager. El contrato es [deploy-studio.json](deploy-studio.json). La [guía de despliegue](../docs/4-automated-deployment-on-oci-resource-manager-linux.md) describe el recorrido desde el formulario hasta el inicio de sesión.
 
-## Deploy Studio
+## Contrato del paquete
 
-Select Oracle AI Accelerator and a validated release. Add the OCI config and API key to see the region and available credits, then choose a new or existing compartment. The region comes from the OCI config. Use the password generator for the database ADMIN, the wallet and the application login. The application username is `admin`.
+El manifiesto v2 describe los campos del formulario y su relación con las variables de Terraform. Deploy Studio aporta el compartimento, tenancy, región, namespace, sufijo de despliegue y `source_commit_sha`. El SHA se resuelve desde el release y fija la revisión que instala la VM. `source_ref` es una alternativa para ejecuciones manuales y queda fuera del formulario.
 
-Deploy Studio passes the selected Git commit to Terraform. The VM checks out that exact commit, then runs database setup and verifies the application health endpoint through Nginx. Manual Terraform deployments can set `source_commit_sha` or use `source_ref` with their own OCI config in `.oci/`.
+Las configuraciones de Autonomous AI Database, red y Compute están en [variables.tf](variables.tf). El bucket es privado. [Cálculo de nombres por despliegue](naming.tf) · [Script de arranque de la VM](templatefile/user_data.sh)
 
-## Credentials and artifacts
+## Credenciales y artefactos
 
-- The OCI API key is required by the current application and Autonomous Database Select AI setup. Deploy Studio adds OCI config and key to the Resource Manager package in memory. The Compute bootstrap and Terraform state contain credentials, and the VM stores the key under the application user's home directory. Use a dedicated, least-privilege test identity and restrict access to the stack, VM and artifacts.
-- The wallet is staged in a private Object Storage bucket and removed from the bucket after the VM obtains it. Deploy Studio exports the wallet and VM SSH key as protected artifacts. The repository and the clean source download exclude credential files.
-- The application endpoint uses a self-signed HTTPS certificate. Configure a trusted certificate before using it with production credentials or data.
+- Deploy Studio incorpora el config y la clave de API de OCI al paquete del trabajo. La VM usa esa clave para llamar a OCI y configurar Select AI en Autonomous Database. Usa una identidad de laboratorio con permisos ajustados al compartimento y restringe el acceso a la VM y al stack.
+- El wallet se guarda temporalmente en Object Storage y la VM lo retira del bucket después de descargarlo. El trabajo y su estado, los registros de instalación y los artefactos de acceso deben tratarse como sensibles.
+- Mantén fuera de Git los archivos OCI reales, claves, wallets, variables privadas y estados de Terraform. Para ejecutar Terraform directamente hace falta preparar `.oci/config` y `.oci/key.pem` con acceso privado. Si aprovisionas la VM, el config incorporado debe apuntar a `/home/opc/.oci/key.pem`.
+
+## Validación automatizada
+
+El [workflow de Terraform](../.github/workflows/terraform.yml) comprueba el contrato del formulario, el formato y la configuración de Terraform. El chequeo de arranque prueba con un repositorio de ejemplo que la VM instala el commit seleccionado. Las comprobaciones usan credenciales sintéticas.

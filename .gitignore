@@ -2,6 +2,11 @@
 .env
 .oci/
 *.pem
+/app/wallet/*
+!/app/wallet/.unzip_the_wallet_here
+*wallet*.zip
+*.tfvars
+*.tfvars.json
 
 # Terraform working files and state
 **/.terraform/
@@ -12,3 +17,11 @@ crash.log
 # Python test cache
 __pycache__/
 *.py[cod]
+
+# Local agent instructions and architecture tooling
+/AGENTS.md
+/.codex/
+/.sentrux/
+/graphify-out/
+/.archify/
+/.vscode/
