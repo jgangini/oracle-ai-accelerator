@@ -17,14 +17,17 @@ Necesitas una cuenta de OCI, acceso a Deploy Studio y un perfil OCI con clave de
 
 [Guía de despliegue con Deploy Studio](docs/4-automated-deployment-on-oci-resource-manager-linux.md) · [Releases de GitHub](https://github.com/jgangini/oracle-ai-accelerator/releases)
 
-## Cómo funciona
+## Arquitectura de los componentes
 
-| Componente | Función |
-| --- | --- |
-| Streamlit | Presenta los módulos de documentos, voz, agentes y consultas. |
-| OCI Generative AI, Document Understanding y Speech | Procesan texto, documentos y audio según el módulo. |
-| Autonomous AI Database 26ai | Guarda usuarios, permisos, archivos y fragmentos. Usa vectores para recuperar contenido por similitud y Select AI para consultas asistidas. |
-| OCI Resource Manager, Compute y Object Storage | Aprovisionan la infraestructura. La VM aloja la aplicación y obtiene el wallet desde un bucket privado durante el arranque. |
+![Flujo de extracción, indexación y generación para CSV, texto, PDF, imágenes, audio y voz en tiempo real](img/architecture.png)
+
+Lee la figura por filas para seguir cada tipo de entrada y de izquierda a derecha para ver cómo se procesa y llega a Streamlit.
+
+1. **Extracción.** Select AI consulta datos tabulares y Select AI RAG recupera información de textos para responder. OCI Document Understanding extrae contenido de PDF, OCI Speech transcribe audio y voz en vivo, y los modelos multimodales de OCI Generative AI procesan imágenes.
+2. **Indexación.** OCI Object Storage conserva archivos de entrada y resultados intermedios. Para los módulos con búsqueda semántica, Autonomous AI Database 26ai guarda los fragmentos indexados y sus vectores para recuperarlos por similitud.
+3. **Generación.** Según el módulo, Generative AI y los agentes usan los resultados de la extracción o el contexto recuperado para responder. Streamlit presenta los módulos y sus resultados.
+
+En el despliegue, Deploy Studio inicia el aprovisionamiento mediante OCI Resource Manager. La VM de Compute aloja Streamlit y obtiene el wallet de la base desde un bucket privado durante el arranque.
 
 [Modelo de datos](docs/5-data-model-documentation.md) · [Archivos SQL del esquema](setup/autonomous_database) · [Aplicación Streamlit](app/app.py)
 
