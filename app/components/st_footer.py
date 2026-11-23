@@ -33,6 +33,6 @@ def get_footer():
     
     # Footer content
     st.markdown(
-        "<div class='footer'>Made with 🤍 in Oracle AI · Powered by <a href='https://pe.linkedin.com/in/jganggini' target='_blank'>Joel Ganggini</a></div>",
+        "<div class='footer'>Made with 🤍 in Oracle AI · Powered by <a href='https://pe.linkedin.com/in/jgangini' target='_blank'>Joel Gangini</a></div>",
         unsafe_allow_html=True,
     )

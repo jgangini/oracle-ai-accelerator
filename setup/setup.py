@@ -208,6 +208,9 @@ def main():
     # Instalar requisitos del proyecto en la venv actual
     run_cmd(f'"{sys.executable}" -m pip install -r {req_file}',
             f'[OK] PIP INSTALL REQUIREMENTS..........................[ VENV_REQUIREMENTS ]')
+
+    run_cmd(f'"{sys.executable}" check_runtime.py',
+            '[OK] CHECK STREAMLIT ARROW RUNTIME........................[ VENV_RUNTIME ]')
     
     print(f'\n                                                     [ VALIDATION ][ TOOLS ]')
     print(f'---------------------------------------------------------------------------')

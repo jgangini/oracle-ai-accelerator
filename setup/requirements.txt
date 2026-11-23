@@ -1,13 +1,14 @@
 oci-cli
 python-dotenv==1.1.0
-oracle-ads==2.13.8
 oracledb==3.1.0
+numpy==2.0.2
 pandas==2.2.3
+pyarrow==26.0.1
 PyMuPDF==1.25.5
 
-langchain==0.3.18
-langchain-community==0.3.17
-langchain-core==0.3.34
+langchain==0.3.27
+langchain-community==0.3.27
+langchain-core==0.3.72
 
 pydantic==2.10.6
 pydantic-settings==2.8.1

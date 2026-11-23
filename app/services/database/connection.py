@@ -1,5 +1,4 @@
 import os
-import ads
 import oracledb
 from dotenv import load_dotenv
 
