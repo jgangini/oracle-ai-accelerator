@@ -94,9 +94,8 @@ database_id, region = sys.argv[1:]
 config = oci.config.from_file("/home/opc/.oci/config")
 config["region"] = region
 client = oci.database.DatabaseClient(config, timeout=(5, 40))
-details = oci.database.models.GenerateAutonomousDatabaseWalletDetails(
-    password=dotenv_values(".env")["CON_ADB_WALLET_PASSWORD"]
-)
+wallet_password = dotenv_values(".env")["CON_ADB_WALLET_PASSWORD"]
+details = oci.database.models.GenerateAutonomousDatabaseWalletDetails(password=wallet_password)
 try:
     response = client.generate_autonomous_database_wallet(
         database_id, details, retry_strategy=oci.retry.DEFAULT_RETRY_STRATEGY
