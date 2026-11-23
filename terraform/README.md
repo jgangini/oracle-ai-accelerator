@@ -16,4 +16,4 @@ Las configuraciones de Autonomous AI Database, red y Compute están en [variable
 
 ## Validación automatizada
 
-El [workflow de Terraform](../.github/workflows/terraform.yml) comprueba el contrato del formulario, el formato y la configuración de Terraform. El chequeo de arranque prueba con un repositorio de ejemplo que la VM instala el commit seleccionado. Las comprobaciones usan credenciales sintéticas.
+El [workflow de Terraform](../.github/workflows/terraform.yml) comprueba el contrato del formulario, el formato y la configuración de Terraform. Las pruebas de arranque usan un repositorio de ejemplo para verificar que la VM instala el commit seleccionado. También comprueban que la VM configura la tarea de salud cuando `opc` todavía no tiene crontab y conserva las tareas existentes. Las comprobaciones usan credenciales sintéticas.

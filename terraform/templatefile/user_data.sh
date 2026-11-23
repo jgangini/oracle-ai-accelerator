@@ -190,8 +190,28 @@ chmod +x /home/opc/restart_worker.sh
 chown opc:opc /home/opc/restart_worker.sh
 
 # Add cron job for health check every 5 minutes when crontab is available.
+install_health_check_cron() {
+  local entry='*/5 * * * * /home/opc/health_check.sh'
+  local current_crontab
+  if ! current_crontab=$(LC_ALL=C crontab -u opc -l 2>&1); then
+    if [[ "$current_crontab" != 'no crontab for opc' ]]; then
+      echo 'Unable to read the existing opc crontab.' >&2
+      return 1
+    fi
+    current_crontab=
+  fi
+  if ! grep -Fxq "$entry" <<< "$current_crontab"; then
+    {
+      if [[ -n "$current_crontab" ]]; then
+        printf '%s\n' "$current_crontab"
+      fi
+      printf '%s\n' "$entry"
+    } | crontab -u opc -
+  fi
+}
+
 if command -v crontab >/dev/null 2>&1; then
-  (crontab -u opc -l 2>/dev/null; echo "*/5 * * * * /home/opc/health_check.sh") | crontab -u opc -
+  install_health_check_cron
 else
   echo "crontab not available; skipping scheduled health check"
 fi

@@ -11,6 +11,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def find_bash() -> str | None:
+    if os.name == "nt":
+        git_bash = Path("C:/Program Files/Git/bin/bash.exe")
+        return str(git_bash) if git_bash.is_file() else None
+    return shutil.which("bash")
+
+
 class DeployStudioContractTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -98,10 +105,7 @@ class DeployStudioContractTests(unittest.TestCase):
             rendered = base64.b64decode(json.loads(console.stdout.strip())).decode()
             self.assertIn(f"SOURCE_COMMIT_SHA='{sha}'", rendered)
 
-            bash = shutil.which("bash")
-            if os.name == "nt":
-                git_bash = Path("C:/Program Files/Git/bin/bash.exe")
-                bash = str(git_bash) if git_bash.is_file() else None
+            bash = find_bash()
             if not bash:
                 self.skipTest("Bash is required to exercise the rendered checkout")
             cloud_init = work / "user_data.sh"
@@ -119,6 +123,62 @@ class DeployStudioContractTests(unittest.TestCase):
             checkout = work / "deployed-app"
             subprocess.run([bash, checkout_script.as_posix(), checkout.as_posix()], check=True)
             self.assertEqual(git("rev-parse", "HEAD", cwd=checkout), sha)
+
+    def test_health_check_cron_handles_first_boot_and_preserves_existing_entries(self) -> None:
+        bash = find_bash()
+        if not bash:
+            self.skipTest("Bash is required to exercise the cron setup")
+
+        template = (ROOT / "terraform" / "templatefile" / "user_data.sh").read_text(encoding="utf-8")
+        start = template.index("# Add cron job for health check")
+        end = template.index("# Step 15: Install and configure Nginx", start)
+        mock = r"""
+set -euo pipefail
+cron_file=$1
+cron_mode=$2
+crontab() {
+  case "$3" in
+    -l)
+      if [[ "$cron_mode" == "denied" ]]; then
+        echo "Permission denied" >&2
+        return 1
+      fi
+      if [[ ! -f "$cron_file" ]]; then
+        echo "no crontab for opc" >&2
+        return 1
+      fi
+      cat "$cron_file"
+      ;;
+    -)
+      cron_input=$(cat)
+      printf '%s\n' "$cron_input" > "$cron_file"
+      ;;
+    *) return 2 ;;
+  esac
+}
+"""
+        cron_script = mock + template[start:end] + '\nprintf "%s\\n" "bootstrap continued"\n'
+        entry = "*/5 * * * * /home/opc/health_check.sh"
+        existing = "0 2 * * * /home/opc/existing.sh"
+        scenarios = (
+            ("first boot", "", None, [entry]),
+            ("existing cron", "", existing, [existing, entry]),
+            ("listed task", "", f"{existing}\n{entry}", [existing, entry]),
+            ("read error", "denied", existing, [existing]),
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            for i, (label, mode, initial, expected) in enumerate(scenarios):
+                with self.subTest(label=label):
+                    cron_file = Path(tmp) / f"cron-{i}"
+                    if initial is not None:
+                        cron_file.write_text(initial + "\n", encoding="utf-8")
+                    result = subprocess.run(
+                        [bash, "-s", "--", cron_file.as_posix(), mode],
+                        input=cron_script, capture_output=True, text=True, timeout=10,
+                    )
+                    self.assertEqual(result.returncode, 1 if mode else 0, result.stderr)
+                    self.assertEqual("bootstrap continued" in result.stdout, not mode)
+                    self.assertEqual(cron_file.read_text(encoding="utf-8").splitlines(), expected)
 
     def test_local_environment_file_is_not_versioned(self) -> None:
         tracked = subprocess.run(
