@@ -1,32 +1,55 @@
 # Arquitectura de Oracle AI Accelerator
 
-Oracle AI Accelerator es un laboratorio de OCI para probar el procesamiento de documentos, audio y texto desde una aplicación Streamlit. La modalidad de Deploy Studio instala el laboratorio en una máquina virtual Linux, junto con las dependencias de almacenamiento y base de datos.
+Oracle AI Accelerator instala Streamlit en una VM de OCI. El navegador usa Nginx para acceder a la aplicación. Autonomous AI Database conserva los registros del laboratorio y Object Storage guarda los archivos de entrada y salida.
 
-![Deploy Studio aprovisiona la VM con OCI Resource Manager. El navegador accede a Streamlit por HTTPS y la aplicación usa Autonomous AI Database, Object Storage y Document Understanding.](assets/oracle-ai-accelerator-architecture.png)
+![Mapa de aprovisionamiento y uso de Oracle AI Accelerator. Deploy Studio usa GitHub, OCI IAM y Resource Manager. La VM se conecta a Autonomous AI Database, Object Storage, Generative AI, Speech y Document Understanding.](assets/accelerator-deployment-oci.png)
 
-El diagrama separa el aprovisionamiento desde Deploy Studio del uso de la aplicación desde el navegador.
+El flujo superior muestra quién aprovisiona el entorno. Las conexiones desde la VM muestran cómo se usan los datos después del arranque.
 
 ## Despliegue
 
-1. El operador selecciona un release en Deploy Studio y valida el perfil OCI y el compartimento. **Deploy** autoriza el plan de Resource Manager y, si pasa, el inicio de APPLY.
-2. Terraform aprovisiona la red, la VM, un bucket privado y Autonomous AI Database. La VM comprueba el SHA seleccionado, prepara el wallet de base de datos, instala la aplicación y arranca los servicios.
-3. Terraform espera la marca de inicialización. La VM escribe esa marca después de comprobar que Streamlit responde por HTTPS. Deploy Studio muestra la URL de la aplicación. Si se configuró un destinatario, el [correo de acceso](../terraform/README.md#correo-de-acceso) incluye los datos de los servicios y los adjuntos que declara el contrato.
+1. Deploy Studio valida el perfil OCI y fija el release de GitHub a su SHA. Resource Manager ejecuta el plan y después aplica ese plan.
+2. Terraform crea la red, la VM, Autonomous AI Database y un bucket privado. La VM verifica el SHA, descarga el wallet directamente desde la base y ejecuta el script de inicialización de la aplicación.
+3. Terraform espera la marca que la VM escribe tras verificar Streamlit a través de Nginx. Deploy Studio muestra la URL de la aplicación cuando termina el trabajo.
 
-[Contrato de Terraform](../terraform/README.md) · [Inicialización de la VM](../terraform/templatefile/user_data.sh)
+[Guía de despliegue](deployment.md) · [Manifiesto](../terraform/deploy-studio.json) · [Inicialización de la VM](../terraform/templatefile/user_data.sh)
 
-## Uso del laboratorio
+## Servicios y recursos
 
-| Componente | Responsabilidad |
+| Servicio | Responsabilidad |
 | --- | --- |
-| OCI Compute | Nginx recibe HTTPS y reenvía las solicitudes a Streamlit. Streamlit presenta los módulos y ejecuta las tareas solicitadas. |
-| Autonomous AI Database | Guarda usuarios, permisos y registros de trabajo. La aplicación abre la conexión con el wallet. |
-| OCI Object Storage | Guarda los archivos del laboratorio en el bucket privado. La VM obtiene el wallet directamente de Autonomous AI Database. |
-| OCI AI Services | Document Understanding procesa documentos del bucket. Los demás módulos invocan servicios como OCI Speech o Generative AI según la tarea. |
+| GitHub | Publica el release y el código que la VM descarga y verifica al arrancar. |
+| OCI IAM y OCI Resource Manager | Deploy Studio usa la identidad OCI para acceder al compartimento. Resource Manager ejecuta PLAN y APPLY. |
+| OCI Networking | VCN con subred pública, Internet Gateway, lista de seguridad y tabla de rutas. |
+| OCI Compute | VM Oracle Linux con Nginx y los procesos Streamlit. |
+| Autonomous AI Database | Wallet, esquema del laboratorio, Vector Search, Select AI, Select AI RAG y agentes en la base de datos. |
+| OCI Object Storage | Bucket privado para originales y salidas de procesamiento. |
+| OCI Document Understanding | Lee los documentos del bucket y devuelve el PDF buscable y el JSON de análisis. |
+| OCI Speech | Transcribe archivos por lotes, reconoce voz en tiempo real y sintetiza audio. |
+| OCI Generative AI | Chat, análisis de imágenes y embeddings. Autonomous AI Database también usa modelos OCI en perfiles Select AI e indexación. |
 
-En el flujo de documentos, Streamlit recibe un archivo, lo guarda en el bucket e inicia el análisis. Document Understanding lee el objeto y genera los archivos de salida. La interfaz muestra el resultado y sus detalles.
+La instalación usa repositorios de paquetes de Oracle Linux y Python. Las funciones de voz por WebRTC usan Google STUN. Cuando está habilitado el correo de acceso, Deploy Studio lo envía mediante Resend.
 
-[Definiciones SQL del esquema](../setup/autonomous_database) · [Entrada de la aplicación](../app/app.py) · [Procesamiento de documentos](../app/services/oci_document_understanding.py)
+## Flujo de documentos
+
+1. Streamlit recibe el PDF y guarda el original en el bucket privado.
+2. Streamlit envía el trabajo a OCI Document Understanding. El servicio lee el original y guarda el PDF buscable y el JSON de análisis en Object Storage.
+3. La aplicación extrae el texto por página, registra los datos del documento y conserva los fragmentos indexados en Autonomous AI Database. La pantalla **View** muestra las páginas, el archivo de salida y el texto extraído.
+
+La [figura de los módulos](../img/architecture.png) muestra las rutas adicionales de CSV, texto, imágenes y audio. [Procesamiento de documentos](../app/services/oci_document_understanding.py) · [Tutorial con un PDF](tutorial.md)
+
+## Modelo de datos
+
+| Tabla o relación | Qué representa |
+| --- | --- |
+| [`users`](../setup/autonomous_database/developer/c.TABLE_USERS.sql) y [`user_group`](../setup/autonomous_database/developer/b.TABLE_USER_GROUP.sql) | Usuarios del laboratorio y su grupo. |
+| [`modules`](../setup/autonomous_database/developer/d.TABLE_MODULES.sql) | Módulos ofrecidos en la interfaz y formatos admitidos. |
+| [`files`](../setup/autonomous_database/developer/h.TABLE_FILES.sql) y [`file_user`](../setup/autonomous_database/developer/i.TABLE_FILE_USER.sql) | Metadatos de cada archivo y asociación con los usuarios que lo comparten. |
+| [`docs`](../setup/autonomous_database/developer/j.TABLE_DOCS.sql) | Fragmentos indexados que apuntan al archivo de origen. |
+| [`agents`](../setup/autonomous_database/developer/f.TABLE_AGENTS.sql) y [`agent_user`](../setup/autonomous_database/developer/g.TABLE_AGENT_USER.sql) | Definiciones de agentes y asociaciones con usuarios. |
+
+Los binarios permanecen en Object Storage. El registro de archivo conserva su ruta y los datos de procesamiento. [Esquema SQL completo](../setup/autonomous_database)
 
 ## Límites del laboratorio
 
-La configuración de despliegue asigna una IP pública a la VM y usa un certificado inicial autofirmado. Limita el acceso a redes autorizadas y usa un certificado de confianza antes de compartir el laboratorio. Trata como sensibles las credenciales, el wallet y el estado de Terraform. [Credenciales y artefactos](../terraform/README.md#credenciales-y-artefactos)
+La VM tiene IP pública y un certificado inicial autofirmado. Las reglas de entrada del ejemplo deben revisarse antes de extender el acceso a otros usuarios. Protege el estado de Terraform, el wallet y los archivos de credenciales que usa el arranque. [Credenciales y artefactos](../terraform/README.md#credenciales-y-artefactos)

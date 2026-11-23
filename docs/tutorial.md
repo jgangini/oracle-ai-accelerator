@@ -1,18 +1,28 @@
-# Procesar un primer documento
+# Extraer texto del primer PDF
 
-Este recorrido usa el módulo de documentos para extraer texto de un PDF y consultar el resultado en Oracle AI Accelerator.
+Usa **AI Document Understanding** para abrir un PDF en Oracle AI Accelerator y comprobar el texto que se extrajo de sus páginas.
 
-## Preparar el laboratorio
+## Qué necesitas
 
-- Para instalar el laboratorio, prepara un perfil OCI con clave de API y permisos en el compartimento de destino. [Flujo de despliegue](architecture.md#despliegue)
-- Inicia sesión con un usuario que tenga acceso al módulo **3: AI Document Understanding**. Usa un PDF de prueba autorizado y sin datos sensibles.
+- Un [laboratorio desplegado](deployment.md#comprobar-el-acceso) y un usuario con acceso al módulo **3: AI Document Understanding**.
+- El archivo [`oci_data_science.pdf`](../app/data/knowledge_examples/3_module/oci_data_science.pdf) incluido en el repositorio, o cualquier PDF de prueba autorizado. Descárgalo antes de abrir el formulario.
 
-## Cargar y procesar el PDF
+## Procesar el documento
 
 1. En la pantalla principal, pulsa **Create**.
-2. En **Which module would you like to start with?**, selecciona **3: AI Document Understanding**.
-3. Elige el idioma del archivo. Pulsa **Choose a File** y selecciona el PDF.
-4. Escribe una descripción en **File Description**, elige **PDF** como tipo de salida y pulsa **Save**.
-5. Cuando termine el procesamiento, marca **Select** en la fila del documento y pulsa el icono **View**. Consulta **Pages**, el nombre del archivo en **Output** y el contenido extraído en **Text**.
+2. En **Which module would you like to start with?**, elige **3: AI Document Understanding**.
+3. Selecciona el idioma del PDF. Pulsa **Choose a File** y adjunta el documento.
+4. Escribe una descripción fácil de reconocer en **File Description**. Elige **PDF** como salida y pulsa **Save**.
+5. Cuando se muestre el documento en la lista, marca **Select** en su fila y abre el icono **View**.
 
-El resultado esperado es un registro del documento, el número de páginas y el archivo de salida. Si el módulo no aparece, comprueba los permisos del usuario. Si aparece y el análisis falla, revisa los permisos de OCI, la región y el bucket de la instalación. [Arquitectura del flujo](architecture.md)
+## Verificar el resultado
+
+| Campo | Qué debes ver |
+| --- | --- |
+| **Pages** | La cantidad de páginas del PDF que cargaste. |
+| **Output** | El nombre del PDF de salida con el sufijo `_trg.pdf`. |
+| **Text** | Texto del documento extraído de sus páginas. |
+
+Object Storage conserva el original, el PDF buscable y el JSON del análisis. [Flujo de documentos](architecture.md#flujo-de-documentos)
+
+Si el módulo falta, revisa los permisos del usuario. Si el módulo aparece y **Save** falla, comprueba los permisos de Document Understanding y Object Storage y la región del despliegue. [Revisión de una ejecución](deployment.md#revisar-una-ejecución-detenida)
