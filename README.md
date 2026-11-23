@@ -27,7 +27,7 @@ Lee la figura por filas para seguir cada tipo de entrada y de izquierda a derech
 2. **Indexación.** OCI Object Storage conserva archivos de entrada y resultados intermedios. Para los módulos con búsqueda semántica, Autonomous AI Database 26ai guarda los fragmentos indexados y sus vectores para recuperarlos por similitud.
 3. **Generación.** Según el módulo, Generative AI y los agentes usan los resultados de la extracción o el contexto recuperado para responder. Streamlit presenta los módulos y sus resultados.
 
-En el despliegue, Deploy Studio inicia el aprovisionamiento mediante OCI Resource Manager. La VM de Compute aloja Streamlit y obtiene el wallet de la base desde un bucket privado durante el arranque.
+En el despliegue, Deploy Studio inicia el aprovisionamiento mediante OCI Resource Manager. La VM de Compute aloja Streamlit y obtiene el wallet directamente de Autonomous AI Database durante el arranque.
 
 [Archivos SQL del esquema](setup/autonomous_database) · [Aplicación Streamlit](app/app.py)
 

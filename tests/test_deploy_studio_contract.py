@@ -1,11 +1,16 @@
 import base64
+import io
 import json
 import os
 import shutil
+import sys
 import tempfile
 import subprocess
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import Mock, patch
+from zipfile import ZipFile
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -66,9 +71,50 @@ class DeployStudioContractTests(unittest.TestCase):
             },
         )
 
-    def test_wallet_uses_a_private_bucket(self) -> None:
+    def test_application_files_use_a_private_bucket(self) -> None:
         bucket = (ROOT / "terraform" / "b_oci_objectstorage_bucket.tf").read_text(encoding="utf-8")
         self.assertRegex(bucket, r'access_type\s*=\s*"NoPublicAccess"')
+
+    def test_bootstrap_downloads_the_wallet_from_the_selected_database(self) -> None:
+        template = (ROOT / "terraform" / "templatefile" / "user_data.sh").read_text(encoding="utf-8")
+        script = template.split('<<\'PY_WALLET\'\n', 1)[1].split("\nPY_WALLET\n", 1)[0]
+        terraform = (ROOT / "terraform" / "c_oci_database_autonomous_database.tf").read_text(encoding="utf-8")
+        self.assertNotIn('resource "oci_objectstorage_object" "adb_wallet_zip"', terraform)
+        self.assertIn('resource "oci_database_autonomous_database_wallet" "adb_wallet"', terraform)
+
+        wallet = io.BytesIO()
+        with ZipFile(wallet, "w") as archive:
+            archive.writestr("tnsnames.ora", "synthetic wallet")
+        payload = wallet.getvalue()
+        selected_database = "ocid1.autonomousdatabase.oc1.example"
+        selected_region = "us-chicago-1"
+        wallet_password = "synthetic-wallet-password"
+        new_client = Mock()
+        new_client.return_value.generate_autonomous_database_wallet.return_value = SimpleNamespace(
+            data=SimpleNamespace(content=payload)
+        )
+        retry = object()
+        oci = SimpleNamespace(
+            config=SimpleNamespace(from_file=Mock(return_value={"region": "other-region"})),
+            database=SimpleNamespace(
+                DatabaseClient=new_client,
+                models=SimpleNamespace(GenerateAutonomousDatabaseWalletDetails=dict),
+            ),
+            retry=SimpleNamespace(DEFAULT_RETRY_STRATEGY=retry),
+        )
+        dotenv = SimpleNamespace(dotenv_values=Mock(return_value={"CON_ADB_WALLET_PASSWORD": wallet_password}))
+
+        with patch.dict(sys.modules, {"oci": oci, "dotenv": dotenv}), patch.object(
+            sys, "argv", ["-", selected_database, selected_region]
+        ), patch.object(Path, "write_bytes", autospec=True) as write_wallet:
+            exec(compile(script, "<cloud-init wallet>", "exec"), {})
+
+        oci.config.from_file.assert_called_once_with("/home/opc/.oci/config")
+        new_client.assert_called_once_with({"region": selected_region}, timeout=(5, 40))
+        new_client.return_value.generate_autonomous_database_wallet.assert_called_once_with(
+            selected_database, {"password": wallet_password}, retry_strategy=retry
+        )
+        write_wallet.assert_called_once_with(Path("wallet/adb_wallet.zip"), payload)
 
     @unittest.skipUnless(shutil.which("terraform"), "Terraform CLI is required to render cloud-init")
     def test_cloud_init_renders_and_checks_out_the_selected_revision(self) -> None:
@@ -89,7 +135,8 @@ class DeployStudioContractTests(unittest.TestCase):
             sha = git("rev-parse", "HEAD")
             git(*commit_args, "--allow-empty", "-m", "newer main")
             data = {
-                "bucket_name": "test-bucket",
+                "adb_id": "ocid1.autonomousdatabase.oc1.example",
+                "region": "us-chicago-1",
                 "oci_config_base64": "",
                 "oci_key_base64": "",
                 "source_repo_base64": base64.b64encode(repo.as_uri().encode()).decode(),

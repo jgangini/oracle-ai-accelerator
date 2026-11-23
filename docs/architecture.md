@@ -20,7 +20,7 @@ El diagrama separa el aprovisionamiento desde Deploy Studio del uso de la aplica
 | --- | --- |
 | OCI Compute | Nginx recibe HTTPS y reenvía las solicitudes a Streamlit. Streamlit presenta los módulos y ejecuta las tareas solicitadas. |
 | Autonomous AI Database | Guarda usuarios, permisos y registros de trabajo. La aplicación abre la conexión con el wallet. |
-| OCI Object Storage | Guarda archivos del laboratorio en el bucket privado. Durante el despliegue también sirve para transferir el wallet a la VM. |
+| OCI Object Storage | Guarda los archivos del laboratorio en el bucket privado. La VM obtiene el wallet directamente de Autonomous AI Database. |
 | OCI AI Services | Document Understanding procesa documentos del bucket. Los demás módulos invocan servicios como OCI Speech o Generative AI según la tarea. |
 
 En el flujo de documentos, Streamlit recibe un archivo, lo guarda en el bucket e inicia el análisis. Document Understanding lee el objeto y genera los archivos de salida. La interfaz muestra el resultado y sus detalles.

@@ -11,7 +11,7 @@ Las configuraciones de Autonomous AI Database, red y Compute están en [variable
 ## Credenciales y artefactos
 
 - Deploy Studio incorpora el config y la clave de API de OCI al paquete del trabajo. La VM usa esa clave para llamar a OCI y configurar Select AI en Autonomous Database. Usa una identidad de laboratorio con permisos ajustados al compartimento y restringe el acceso a la VM y al stack.
-- El wallet se guarda temporalmente en Object Storage y la VM lo retira del bucket después de descargarlo. El trabajo y su estado, los registros de instalación y los artefactos de acceso deben tratarse como sensibles.
+- La VM solicita su wallet directamente a Autonomous AI Database con la identidad OCI del despliegue. Esa identidad necesita permiso para generar el wallet de la base creada. Terraform genera por separado el wallet que Deploy Studio entrega como artefacto. El trabajo y su estado, los registros de instalación y los artefactos de acceso deben tratarse como sensibles.
 - Mantén fuera de Git los archivos OCI reales, claves, wallets, variables privadas y estados de Terraform. Para ejecutar Terraform directamente hace falta preparar `.oci/config` y `.oci/key.pem` con acceso privado. Si aprovisionas la VM, el config incorporado debe apuntar a `/home/opc/.oci/key.pem`.
 
 ## Validación automatizada

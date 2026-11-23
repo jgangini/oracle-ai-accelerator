@@ -34,21 +34,3 @@ resource "oci_database_autonomous_database_wallet" "adb_wallet" {
   #Optional
   base64_encode_content = true
 }
-
-############################################
-# Object Storage service: Creates a new object or overwrites an existing object with the same name.
-############################################
-
-#https://registry.terraform.io/providers/oracle/oci/latest/docs/resources/objectstorage_object
-resource "oci_objectstorage_object" "adb_wallet_zip" {
-  #Required
-  bucket    = oci_objectstorage_bucket.bucket.name
-  content   = oci_database_autonomous_database_wallet.adb_wallet.content
-  namespace = var.objectstorage_namespace
-  object    = "adb_wallet.zip"
-
-  depends_on = [
-    oci_database_autonomous_database_wallet.adb_wallet,
-    oci_objectstorage_bucket.bucket
-  ]
-}

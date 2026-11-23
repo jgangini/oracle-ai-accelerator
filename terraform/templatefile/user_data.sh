@@ -74,22 +74,43 @@ install -m 0600 -o opc -g opc /dev/null /home/opc/.oci/config
 install -m 0600 -o opc -g opc /dev/null /home/opc/.oci/key.pem
 printf '%s' '${oci_config_base64}' | base64 -d > /home/opc/.oci/config
 printf '%s' '${oci_key_base64}' | base64 -d > /home/opc/.oci/key.pem
-mkdir -p /home/opc/oracle-ai-accelerator/app/wallet
-OCI_CLI_CONFIG_FILE=/home/opc/.oci/config oci os object get \
-  --bucket-name ${bucket_name} \
-  --name adb_wallet.zip \
-  --file /home/opc/oracle-ai-accelerator/app/wallet/adb_wallet_encoded.zip
-base64 -d /home/opc/oracle-ai-accelerator/app/wallet/adb_wallet_encoded.zip > \
-        /home/opc/oracle-ai-accelerator/app/wallet/adb_wallet.zip
-rm -f /home/opc/oracle-ai-accelerator/app/wallet/adb_wallet_encoded.zip
-unzip /home/opc/oracle-ai-accelerator/app/wallet/adb_wallet.zip \
-      -d /home/opc/oracle-ai-accelerator/app/wallet
-OCI_CLI_CONFIG_FILE=/home/opc/.oci/config oci os object delete \
-  --bucket-name ${bucket_name} \
-  --name adb_wallet.zip \
-  --force
 install -m 0600 -o opc -g opc /dev/null /home/opc/oracle-ai-accelerator/app/.env
 printf '%s' '${env_base64}' | base64 -d > /home/opc/oracle-ai-accelerator/app/.env
+sudo -u opc bash -s -- '${adb_id}' '${region}' <<'DOWNLOAD_WALLET'
+set -euo pipefail
+umask 077
+cd /home/opc/oracle-ai-accelerator/app
+mkdir -p wallet
+python3 - "$@" <<'PY_WALLET'
+import io
+import sys
+from pathlib import Path
+from zipfile import ZipFile
+
+import oci
+from dotenv import dotenv_values
+
+database_id, region = sys.argv[1:]
+config = oci.config.from_file("/home/opc/.oci/config")
+config["region"] = region
+client = oci.database.DatabaseClient(config, timeout=(5, 40))
+details = oci.database.models.GenerateAutonomousDatabaseWalletDetails(
+    password=dotenv_values(".env")["CON_ADB_WALLET_PASSWORD"]
+)
+try:
+    response = client.generate_autonomous_database_wallet(
+        database_id, details, retry_strategy=oci.retry.DEFAULT_RETRY_STRATEGY
+    ).data
+except oci.exceptions.ServiceError as exc:
+    raise SystemExit(f"Autonomous Database wallet request failed ({exc.status}, {exc.code}).") from None
+wallet = response if isinstance(response, bytes) else response.content
+with ZipFile(io.BytesIO(wallet)) as archive:
+    if "tnsnames.ora" not in archive.namelist():
+        raise SystemExit("Autonomous Database returned an incomplete wallet.")
+Path("wallet/adb_wallet.zip").write_bytes(wallet)
+PY_WALLET
+unzip -oq wallet/adb_wallet.zip -d wallet
+DOWNLOAD_WALLET
 sudo -u opc -i bash <<'EOF'
 set -euo pipefail
 cd /home/opc/oracle-ai-accelerator/setup

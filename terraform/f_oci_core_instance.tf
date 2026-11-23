@@ -40,7 +40,8 @@ data "oci_identity_availability_domains" "ads" {
 
 locals {
   user_data = templatefile("${path.module}/templatefile/user_data.sh", {
-    bucket_name        = oci_objectstorage_bucket.bucket.name
+    adb_id             = oci_database_autonomous_database.ora26ai.id
+    region             = var.region
     oci_config_base64  = filebase64("${path.module}/.oci/config")
     oci_key_base64     = filebase64("${path.module}/.oci/key.pem")
     source_repo_base64 = base64encode(var.source_repo_url)
@@ -98,9 +99,6 @@ resource "oci_core_instance" "linux_instance" {
     user_data = base64encode(local.user_data)
   }
 
-  depends_on = [
-    oci_objectstorage_object.adb_wallet_zip
-  ]
 }
 
 ############################################
