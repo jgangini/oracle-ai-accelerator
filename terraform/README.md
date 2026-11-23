@@ -14,7 +14,14 @@ Las configuraciones de Autonomous AI Database, red y Compute están en [variable
 - La VM solicita su wallet directamente a Autonomous AI Database con la identidad OCI del despliegue. Esa identidad necesita permiso para generar el wallet de la base creada. Terraform genera por separado el wallet que Deploy Studio entrega como artefacto. El trabajo y su estado, los registros de instalación y los artefactos de acceso deben tratarse como sensibles.
 - Mantén fuera de Git los archivos OCI reales, claves, wallets, variables privadas y estados de Terraform. Para ejecutar Terraform directamente hace falta preparar `.oci/config` y `.oci/key.pem` con acceso privado. Si aprovisionas la VM, el config incorporado debe apuntar a `/home/opc/.oci/key.pem`.
 
-El correo de éxito presenta primero **Autonomous Database** con el usuario `ADMIN`, su contraseña y la del wallet. Luego presenta **Application VM** con la URL, el usuario `admin` y la contraseña de la aplicación. Adjunta el wallet, el paquete de acceso SSH, el registro de ejecución con secretos redactados y el código fuente de Terraform sin las credenciales OCI. La URL de la aplicación también está disponible en Deploy Studio.
+## Correo de acceso
+
+Desde `v1.0.9`, el manifiesto de Accelerator define los datos y el orden de los servicios. Con la plantilla compartida actualizada, el correo pasa directamente a estos apartados.
+
+1. **Autonomous Database** muestra el usuario `ADMIN`, su contraseña y la contraseña del wallet.
+2. **Application VM** muestra la URL, el usuario `admin` y la contraseña de la aplicación.
+
+Cada adjunto presenta un título, una descripción breve y el nombre exacto del archivo. El correo incluye el wallet, el paquete de acceso SSH, el registro de ejecución con secretos redactados y el código fuente de Terraform sin las credenciales OCI. La URL de la aplicación también está disponible en el panel de Deploy Studio.
 
 ## Validación automatizada
 

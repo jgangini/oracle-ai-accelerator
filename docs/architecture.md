@@ -10,7 +10,7 @@ El diagrama separa el aprovisionamiento desde Deploy Studio del uso de la aplica
 
 1. El operador selecciona un release en Deploy Studio y valida el perfil OCI y el compartimento. **Deploy** autoriza el plan de Resource Manager y, si pasa, el inicio de APPLY.
 2. Terraform aprovisiona la red, la VM, un bucket privado y Autonomous AI Database. La VM comprueba el SHA seleccionado, prepara el wallet de base de datos, instala la aplicación y arranca los servicios.
-3. Terraform espera la marca de inicialización. La VM escribe esa marca después de comprobar que Streamlit responde por HTTPS. Deploy Studio muestra la URL de la aplicación y los artefactos que declare el contrato.
+3. Terraform espera la marca de inicialización. La VM escribe esa marca después de comprobar que Streamlit responde por HTTPS. Deploy Studio muestra la URL de la aplicación. Si se configuró un destinatario, el [correo de acceso](../terraform/README.md#correo-de-acceso) incluye los datos de los servicios y los adjuntos que declara el contrato.
 
 [Contrato de Terraform](../terraform/README.md) · [Inicialización de la VM](../terraform/templatefile/user_data.sh)
 
