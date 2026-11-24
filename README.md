@@ -57,7 +57,3 @@ Lee el diagrama por filas. Cada fila muestra qué servicio recibe un tipo de ent
 - [Ejecutar las pruebas de contrato y Terraform](docs/testing.md).
 - [Contrato y configuración de Terraform](terraform/README.md).
 - [Demos](https://youtube.com/playlist?list=PLMUWTQHw13gbqqVHaCid3gUBIlvfVKaBu) · [Reportar un problema](https://github.com/jgangini/oracle-ai-accelerator/issues).
-
-## Autoría y licencia
-
-Proyecto de Joel Gangini Garcia. [Licencia MIT](LICENSE).
