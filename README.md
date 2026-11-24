@@ -12,6 +12,8 @@
   <a href="https://github.com/jgangini/oracle-ai-accelerator/actions/workflows/terraform.yml"><img src="https://github.com/jgangini/oracle-ai-accelerator/actions/workflows/terraform.yml/badge.svg" alt="Validación de Terraform"></a>
 </p>
 
+<p align="center"><strong>Tecnologías</strong></p>
+
 <p align="center">
   <a href="docs/architecture.md"><img src="https://img.shields.io/badge/Oracle-Cloud_Infrastructure-C74634?style=flat-square" alt="Oracle Cloud Infrastructure"></a>
   <a href="docs/tutorial.md"><img src="https://img.shields.io/badge/Interfaz-Streamlit-CC3340?style=flat-square" alt="Streamlit"></a>
